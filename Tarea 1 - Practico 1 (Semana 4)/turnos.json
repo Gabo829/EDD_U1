@@ -1,0 +1,8 @@
+[
+    {
+        "id_turno": 1,
+        "nombre_paciente": "Ana",
+        "especialidad": "Pediatria",
+        "hora": "09:00 AM"
+    }
+]

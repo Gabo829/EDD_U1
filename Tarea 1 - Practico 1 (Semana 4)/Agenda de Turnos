@@ -1,0 +1,132 @@
+import os
+import json
+ARCHIVO_TURNOS = "turnos.json"
+def limpiar_pantalla():
+    os.system("cls")
+
+class Turno:
+    """Clase que actúa como un registro/struct para almacenar los datos de un turno."""
+    def __init__(self, id_turno, nombre_paciente, especialidad, hora):
+        self.id_turno = id_turno
+        self.nombre_paciente = nombre_paciente
+        self.especialidad = especialidad
+        self.hora = hora
+
+    def mostrar_info(self):
+        return f"ID: {self.id_turno} | Paciente: {self.nombre_paciente} | Especialidad: {self.especialidad} | Hora: {self.hora}"
+
+    def convertir_a_diccionario(self):
+        return {
+            "id_turno": self.id_turno,
+            "nombre_paciente": self.nombre_paciente,
+            "especialidad": self.especialidad,
+            "hora": self.hora,
+        }
+
+class AgendaClinica:
+    """Clase que gestiona la estructura de datos (vector/lista) y sus operaciones."""
+    def __init__(self):
+        # Uso de un vector (lista) para almacenar los registros
+        self.lista_turnos = [] 
+        self.contador_id = 1
+        self.cargar_turnos()
+
+    def cargar_turnos(self):
+        if not os.path.exists(ARCHIVO_TURNOS):
+            return
+
+        with open(ARCHIVO_TURNOS, "r", encoding="utf-8") as archivo:
+            datos = json.load(archivo)
+
+        self.lista_turnos = [
+            Turno(
+                turno["id_turno"],
+                turno["nombre_paciente"],
+                turno["especialidad"],
+                turno["hora"],
+            )
+            for turno in datos
+        ]
+
+        if self.lista_turnos:
+            self.contador_id = max(turno.id_turno for turno in self.lista_turnos) + 1
+
+    def guardar_turnos(self):
+        with open(ARCHIVO_TURNOS, "w", encoding="utf-8") as archivo:
+            json.dump(
+                [turno.convertir_a_diccionario() for turno in self.lista_turnos],
+                archivo,
+                ensure_ascii=False,
+                indent=4,
+            )
+
+    def agregar_turno(self, nombre, especialidad, hora):
+        nuevo_turno = Turno(self.contador_id, nombre, especialidad, hora)
+        self.lista_turnos.append(nuevo_turno)
+        self.guardar_turnos()
+        print(f"\n✅ Turno agregado con éxito: {nuevo_turno.nombre_paciente} a las {nuevo_turno.hora}")
+        self.contador_id += 1
+
+    def listar_todos(self):
+        print("\n--- Lista de Todos los Turnos ---")
+        if not self.lista_turnos:
+            print("No hay turnos registrados en la clínica.")
+            return
+        for turno in self.lista_turnos:
+            print(turno.mostrar_info())
+        print("---------------------------------")
+
+    def buscar_por_paciente(self, nombre_buscar):
+        print(f"\n--- Resultados de búsqueda para: '{nombre_buscar}' ---")
+        encontrados = [t for t in self.lista_turnos if nombre_buscar.lower() in t.nombre_paciente.lower()]
+        
+        if encontrados:
+            for turno in encontrados:
+                print(turno.mostrar_info())
+        else:
+            print("No se encontraron turnos para ese paciente.")
+        print("---------------------------------")
+
+# --- Ejecución del Sistema con Menú Interactivo ---
+if __name__ == "__main__":
+    mi_clinica = AgendaClinica()
+
+    while True:
+        limpiar_pantalla()
+        print("\n" + "="*35)
+        print("🏥 SISTEMA DE AGENDA DE TURNOS")
+        print("="*35)
+        print("1. Agregar un nuevo turno")
+        print("2. Listar todos los turnos")
+        print("3. Buscar turno por paciente")
+        print("0. Salir del sistema")
+        print("="*35)
+        
+        opcion = input("Seleccione una opción (1-3, o 0 para salir): ")
+        limpiar_pantalla()
+
+        if opcion == '1':
+            print("\n-- Ingresar Nuevo Turno --")
+            nombre = input("Ingrese el nombre del paciente: ")
+            especialidad = input("Ingrese la especialidad requerida: ")
+            hora = input("Ingrese la hora del turno (ej. 09:00 AM): ")
+            mi_clinica.agregar_turno(nombre, especialidad, hora)
+            input("\nPresione Enter para volver al menú...")
+
+        elif opcion == '2':
+            mi_clinica.listar_todos()
+            input("\nPresione Enter para volver al menú...")
+
+        elif opcion == '3':
+            print("\n-- Buscar Turno --")
+            nombre_buscar = input("Ingrese el nombre del paciente a buscar: ")
+            mi_clinica.buscar_por_paciente(nombre_buscar)
+            input("\nPresione Enter para volver al menú...")
+
+        elif opcion == '0':
+            print("\nSaliendo del sistema... ¡Hasta luego!")
+            break
+
+        else:
+            print("\n⚠️ Opción no válida. Por favor, intente de nuevo ingresando un número del 1 al 3, o 0 para salir.")
+            input("\nPresione Enter para volver al menú...")
