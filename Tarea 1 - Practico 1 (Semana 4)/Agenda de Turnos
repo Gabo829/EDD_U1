@@ -1,6 +1,7 @@
 import os
 import json
-ARCHIVO_TURNOS = "turnos.json"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+ARCHIVO_TURNOS = os.path.join(BASE_DIR, "turnos.json")
 def limpiar_pantalla():
     os.system("cls")
 
@@ -87,6 +88,40 @@ class AgendaClinica:
             print("No se encontraron turnos para ese paciente.")
         print("---------------------------------")
 
+    def eliminar_turno_por_paciente(self, nombre_paciente):
+        turnos_encontrados = [
+            turno for turno in self.lista_turnos
+            if nombre_paciente.lower() in turno.nombre_paciente.lower()
+        ]
+
+        if not turnos_encontrados:
+            print("No se encontraron turnos con ese nombre.")
+            return
+
+        self.lista_turnos = [
+            turno for turno in self.lista_turnos
+            if nombre_paciente.lower() not in turno.nombre_paciente.lower()
+        ]
+        self.guardar_turnos()
+        print(f"\n✅ Se eliminaron {len(turnos_encontrados)} turno(s) de {nombre_paciente}.")
+
+    def eliminar_turno_por_id(self, id_turno):
+        turno_encontrado = next(
+            (turno for turno in self.lista_turnos if turno.id_turno == id_turno),
+            None,
+        )
+
+        if turno_encontrado is None:
+            print("No se encontró un turno con ese ID.")
+            return
+
+        self.lista_turnos = [
+            turno for turno in self.lista_turnos
+            if turno.id_turno != id_turno
+        ]
+        self.guardar_turnos()
+        print(f"\n✅ Se eliminó el turno con ID {id_turno} de {turno_encontrado.nombre_paciente}.")
+
 # --- Ejecución del Sistema con Menú Interactivo ---
 if __name__ == "__main__":
     mi_clinica = AgendaClinica()
@@ -99,10 +134,11 @@ if __name__ == "__main__":
         print("1. Agregar un nuevo turno")
         print("2. Listar todos los turnos")
         print("3. Buscar turno por paciente")
+        print("4. Eliminar turno(s) por paciente")
         print("0. Salir del sistema")
         print("="*35)
         
-        opcion = input("Seleccione una opción (1-3, o 0 para salir): ")
+        opcion = input("Seleccione una opción (1-4, o 0 para salir): ")
         limpiar_pantalla()
 
         if opcion == '1':
@@ -123,10 +159,27 @@ if __name__ == "__main__":
             mi_clinica.buscar_por_paciente(nombre_buscar)
             input("\nPresione Enter para volver al menú...")
 
+        elif opcion == '4':
+            print("\n-- Eliminar Turno(s) --")
+            criterio = input("Eliminar por nombre o por ID? (nombre/id): ").strip().lower()
+
+            if criterio == 'nombre':
+                nombre_paciente = input("Ingrese el nombre del paciente a eliminar: ")
+                mi_clinica.eliminar_turno_por_paciente(nombre_paciente)
+            elif criterio == 'id':
+                id_ingresado = input("Ingrese el ID del turno a eliminar: ").strip()
+                if id_ingresado.isdigit():
+                    mi_clinica.eliminar_turno_por_id(int(id_ingresado))
+                else:
+                    print("⚠️ El ID debe ser un número entero.")
+            else:
+                print("⚠️ Opción no válida. Escriba 'nombre' o 'id'.")
+            input("\nPresione Enter para volver al menú...")
+
         elif opcion == '0':
             print("\nSaliendo del sistema... ¡Hasta luego!")
             break
 
         else:
-            print("\n⚠️ Opción no válida. Por favor, intente de nuevo ingresando un número del 1 al 3, o 0 para salir.")
+            print("\n⚠️ Opción no válida. Por favor, intente de nuevo ingresando un número del 1 al 4, o 0 para salir.")
             input("\nPresione Enter para volver al menú...")

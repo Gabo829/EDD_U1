@@ -4,5 +4,11 @@
         "nombre_paciente": "Ana",
         "especialidad": "Pediatria",
         "hora": "09:00 AM"
+    },
+    {
+        "id_turno": 2,
+        "nombre_paciente": "Isabella",
+        "especialidad": "Medicina General",
+        "hora": "10:30 AM"
     }
 ]
